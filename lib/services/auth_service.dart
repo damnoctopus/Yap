@@ -4,15 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
 
-class AuthService {
+class AuthService
+{
   static String? _token;
   static User? _currentUser;
-
-  // Getters
   static String? get token => _token;
   static User? get currentUser => _currentUser;
-
-  //
   static void setMockUser({
     required String id,
     required String name,
@@ -23,7 +20,6 @@ class AuthService {
     _token = token;
   }
 
-  // Register new user
   static Future<Map<String, dynamic>> register(
       String username,
       String password,
@@ -48,15 +44,18 @@ class AuthService {
         await _saveToPrefs();
 
         return {'success': true, 'user': _currentUser};
-      } else {
+      }
+      else
+      {
         return {'success': false, 'error': 'Registration failed'};
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
       return {'success': false, 'error': e.toString()};
     }
   }
 
-  // Login user
   static Future<Map<String, dynamic>> login(
       String username,
       String password,
@@ -87,7 +86,6 @@ class AuthService {
     }
   }
 
-  // Check if user is logged in
   static Future<bool> isLoggedIn() async {
     if (_token != null) return true;
 
@@ -112,7 +110,7 @@ class AuthService {
     return false;
   }
 
-  // Logout
+
   static Future<void> logout() async {
     _token = null;
     _currentUser = null;
@@ -121,8 +119,9 @@ class AuthService {
     await prefs.clear();
   }
 
-  // Save to shared preferences
-  static Future<void> _saveToPrefs() async {
+  // save to shared preferences
+  static Future<void> _saveToPrefs() async
+  {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', _token!);
     await prefs.setString('userId', _currentUser!.id);

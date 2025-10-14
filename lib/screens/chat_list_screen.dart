@@ -33,7 +33,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   void _handleNewMessage(message) {
-    // Reload chat list when new message arrives
+    // reloads all chats when new message is received
     _loadChats();
   }
 
@@ -66,10 +66,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
           final chat = _chatRooms[index];
           return ListTile(
             leading: CircleAvatar(
+              backgroundColor: Colors.blue,
               child: Text(
                 chat.otherUser.name[0].toUpperCase(),
               ),
-              backgroundColor: Colors.blue,
             ),
             title: Text(
               chat.otherUser.name,
@@ -101,9 +101,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
         onPressed: _showNewChatDialog,
         backgroundColor: Colors.blue,
+        child: Icon(Icons.add),
       ),
     );
   }

@@ -33,8 +33,9 @@ class WebSocketService {
   static void sendMessage(Message message) {
     if (_channel != null) {
       final data = {
-        'senderId': int.parse(message.senderId),
-        'receiverId': int.parse(message.receiverId),
+        // Send IDs as strings to prevent loss of precision or type mismatch
+        'senderId': message.senderId,      // KEEP AS STRING
+        'receiverId': message.receiverId,  // KEEP AS STRING
         'content': message.content,
       };
       _channel!.sink.add(jsonEncode(data));
