@@ -39,9 +39,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _handleNewMessage(Message message) {
-    // Only add if it's for this chat
-    if (message.senderId == widget.chatRoom.otherUser.id ||
-        message.receiverId == widget.chatRoom.otherUser.id) {
+    final currentUserId = AuthService.currentUser!.id;
+    final otherUserId = widget.chatRoom.otherUser.id;
+    if (message.senderId == otherUserId && message.receiverId == currentUserId)
+    {
       setState(() {
         _messages.add(message);
       });
@@ -49,10 +50,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _sendMessage() {
+  void _sendMessage()
+  {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
-
     final message = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       senderId: AuthService.currentUser!.id,
@@ -62,13 +63,12 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     WebSocketService.sendMessage(message);
+    _messageController.clear();
 
-    setState(() {
-      _messages.add(message);
+    Future.delayed(Duration(milliseconds:250),() {
+      _loadMessages();
     });
 
-    _messageController.clear();
-    _scrollToBottom();
   }
 
   void _scrollToBottom() {
