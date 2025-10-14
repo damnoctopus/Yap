@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/chat_room.dart';
-import '../models/user.dart';
+//import '../models/user.dart'; not needed after search feature added
 import '../services/auth_service.dart';
 import '../services/chat_service.dart';
 import '../services/websocket_service.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
+import 'user_search_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   @override
@@ -101,9 +102,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showNewChatDialog,
+        onPressed: _openSearchScreen,
         backgroundColor: Colors.blue,
-        child: Icon(Icons.add),
+        child: Icon(Icons.search),
       ),
     );
   }
@@ -117,62 +118,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
     ).then((_) => _loadChats());
   }
 
-  void _showNewChatDialog() {
-    final idController = TextEditingController();
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Start New Chat'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: idController,
-              decoration: InputDecoration(
-                labelText: 'User ID',
-                hintText: 'Enter user ID',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'User Name',
-                hintText: 'Enter user name',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (idController.text.isNotEmpty &&
-                  nameController.text.isNotEmpty) {
-                final newChat = ChatRoom(
-                  id: '${AuthService.currentUser!.id}_${idController.text}',
-                  otherUser: User(
-                    id: idController.text,
-                    name: nameController.text,
-                    username: 'user${idController.text}',
-                  ),
-                );
-                Navigator.pop(context);
-                _openChat(newChat);
-              }
-            },
-            child: Text('Start Chat'),
-          ),
-        ],
-      ),
-    );
+  void _openSearchScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => UserSearchScreen()),
+    ).then((_) => _loadChats());
   }
+
 
   void _handleLogout() async {
     await AuthService.logout();
