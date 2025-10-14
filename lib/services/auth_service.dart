@@ -122,6 +122,10 @@ class AuthService
   // save to shared preferences
   static Future<void> _saveToPrefs() async
   {
+    if (_token == null || _currentUser == null) {
+      print('Warning: Attempted to save null user/token to prefs.');
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', _token!);
     await prefs.setString('userId', _currentUser!.id);

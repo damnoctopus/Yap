@@ -37,7 +37,10 @@ class _UserSearchScreenState extends State<UserSearchScreen>
   }
 
   void _openChatWithUser(User user) {
-
+    if (AuthService.currentUser == null) {
+      print('Error: User is null, cannot open chat.');
+      return;
+    }
     final currentUserId = AuthService.currentUser!.id;
     final otherUserId = user.id;
     final chatRoomId = [currentUserId, otherUserId].join('_');

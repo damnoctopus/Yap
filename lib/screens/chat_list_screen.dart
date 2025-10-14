@@ -21,8 +21,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _loadChats();
-    WebSocketService.connect();
-    WebSocketService.onMessageReceived = _handleNewMessage;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (AuthService.currentUser != null) {
+        WebSocketService.connect();
+        WebSocketService.onMessageReceived = _handleNewMessage;
+      }
+    });
   }
 
   void _loadChats() async {

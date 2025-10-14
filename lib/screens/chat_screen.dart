@@ -53,9 +53,12 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage()
   {
     final content = _messageController.text.trim();
-    if (content.isEmpty) return;
+    if (content.isEmpty) {
+      return;
+    }
+    final clientMessageId = 'client-${DateTime.now().millisecondsSinceEpoch}';
     final message = Message(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: clientMessageId,
       senderId: AuthService.currentUser!.id,
       receiverId: widget.chatRoom.otherUser.id,
       content: content,
@@ -63,12 +66,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     WebSocketService.sendMessage(message);
-    _messageController.clear();
-
-    Future.delayed(Duration(milliseconds:250),() {
-      _loadMessages();
+    setState(() {
+      _messages.add(message);
     });
-
+    _messageController.clear();
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -120,8 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
-                final isMe = message.senderId ==
-                    AuthService.currentUser!.id;
+                final isMe = message.senderId == (AuthService.currentUser?.id ?? '0');
                 return MessageBubble(
                   message: message,
                   isMe: isMe,
