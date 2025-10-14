@@ -1,50 +1,77 @@
 import 'dart:convert';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/message.dart';
 import '../utils/constants.dart';
+import 'auth_service.dart';
+import 'package:stomp_dart_client/stomp_dart_client.dart'; // The correct, single entry point
 
 class WebSocketService {
-  static WebSocketChannel? _channel;
+  static StompClient? _stompClient;
   static Function(Message)? onMessageReceived;
 
-  // Connect to WebSocket
   static void connect() {
-    try {
-      _channel = WebSocketChannel.connect(Uri.parse(Constants.WS_URL));
+    final currentUserId = AuthService.currentUser?.id;
 
-      _channel!.stream.listen(
-            (data) {
-          try {
-            final message = Message.fromJson(jsonDecode(data));
-            onMessageReceived?.call(message);
-          } catch (e) {
-            print('Error parsing message: $e');
-          }
-        },
-        onError: (error) => print('WebSocket error: $error'),
-        onDone: () => print('WebSocket closed'),
-      );
-    } catch (e) {
-      print('Error connecting to WebSocket: $e');
+    if (currentUserId == null) {
+      print('Error: Cannot connect, user ID is missing.');
+      return;
     }
+
+    // Initialize StompClient with SockJS configuration
+    _stompClient = StompClient(
+      // CRITICAL FIX: Use the HTTP URL for StompConfig.sockJS
+      // The SockJS constructor adds the necessary /ws/session_id pathing internally.
+      config: StompConfig.sockJS(
+        url: Constants.SOCKJS_URL, // Use the new HTTP URL
+        // The rest of your configuration (onConnect, error handling) remains the same
+        onConnect: (StompFrame frame) {
+          print('STOMP connected for user $currentUserId');
+
+          // CRITICAL FIX: SUBSCRIBE to the personal topic
+          _stompClient!.subscribe(
+            destination: '/topic/messages/$currentUserId',
+            callback: (StompFrame frame) {
+              try {
+                final message = Message.fromJson(jsonDecode(frame.body!));
+                onMessageReceived?.call(message);
+              } catch (e) {
+                print('Error parsing received message: $e');
+              }
+            },
+          );
+        },
+        onWebSocketError: (error) => print('WebSocket error: $error'),
+        onStompError: (StompFrame frame) => print('STOMP error: ${frame.body}'),
+        onDisconnect: (frame) => print('STOMP disconnected'),
+      ),
+    );
+
+    // Start the connection process
+    _stompClient!.activate();
+    print('STOMP connection logic initialized for user: $currentUserId');
   }
 
-  // Send message
   static void sendMessage(Message message) {
-    if (_channel != null) {
-      final data = {
-        // Send IDs as strings to prevent loss of precision or type mismatch
-        'senderId': message.senderId,      // KEEP AS STRING
-        'receiverId': message.receiverId,  // KEEP AS STRING
+    if (_stompClient != null && _stompClient!.connected)
+    {
+      final payload = {
+        'senderId': message.senderId,
+        'receiverId': message.receiverId,
         'content': message.content,
       };
-      _channel!.sink.add(jsonEncode(data));
+
+      _stompClient!.send(
+        destination: '/app/chat.send',
+        body: jsonEncode(payload),
+        headers: {'content-type': 'application/json'},
+      );
+    } else {
+      print('STOMP client is not connected. Message not sent.');
     }
   }
 
-  // Disconnect
   static void disconnect() {
-    _channel?.sink.close();
-    _channel = null;
+    _stompClient?.deactivate();
+    _stompClient = null;
+    print('STOMP client disconnected');
   }
 }
