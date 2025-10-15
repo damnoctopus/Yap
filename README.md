@@ -4,7 +4,8 @@ Anonymous Messaging App
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+Wait I found a fuck to give in my pocket.
+Never mind It was just my cock.
 
 A few resources to get you started if this is your first Flutter project:
 
